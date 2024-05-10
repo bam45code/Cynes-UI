@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-from cynes import *
+from cynes import NESHeadless as NES
+from cynes import NES_INPUT_A,NES_INPUT_B,NES_INPUT_DOWN,NES_INPUT_LEFT,NES_INPUT_RIGHT,NES_INPUT_SELECT,NES_INPUT_START,NES_INPUT_UP
 import numpy as np
 import time
 
