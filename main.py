@@ -2,14 +2,16 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from cynes import NESHeadless as NES
-from cynes import NES_INPUT_A,NES_INPUT_B,NES_INPUT_DOWN,NES_INPUT_LEFT,NES_INPUT_RIGHT,NES_INPUT_SELECT,NES_INPUT_START,NES_INPUT_UP
+from cynes import NES_INPUT_A, NES_INPUT_B, NES_INPUT_DOWN, NES_INPUT_LEFT, NES_INPUT_RIGHT, NES_INPUT_SELECT, NES_INPUT_START, NES_INPUT_UP
 import numpy as np
 import time
+import pickle
 
 class NES_Emulator_GUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Cynes NES Emulator")
+        self.root.iconbitmap("nes.ico")
 
         # Initialize NES emulator
         self.nes = None
@@ -38,8 +40,11 @@ class NES_Emulator_GUI:
         menubar = tk.Menu(self.root)
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="Open ROM", command=self.open_rom)
+        file_menu.add_command(label="Save State", command=self.save_state)
+        file_menu.add_command(label="Load State", command=self.load_state)
         file_menu.add_command(label="Exit", command=self.exit)
         menubar.add_cascade(label="File", menu=file_menu)
+        menubar.add_command(label="Reset", command=self.reset_emulator)
         self.root.config(menu=menubar)
 
         # Calculate the canvas size based on scaling factor
@@ -69,6 +74,12 @@ class NES_Emulator_GUI:
             if self.nes:
                 self.nes.controller &= ~self.key_mappings[key]
 
+    def reset_emulator(self):
+        if self.nes:
+            self.nes.reset()
+            self.last_frame_time = time.time()
+            self.update_emulator_output()
+
     def open_rom(self):
         rom_path = filedialog.askopenfilename(title="Select NES ROM", filetypes=[("NES ROM Files", "*.nes")])
         if rom_path:
@@ -77,6 +88,23 @@ class NES_Emulator_GUI:
             self.nes = NES(rom_path)
             self.last_frame_time = time.time()
             self.update_emulator_output()
+
+    def save_state(self):
+        if self.nes:
+            state = self.nes.save()
+            file = filedialog.asksaveasfile(mode="wb",filetypes=[("NES Save Files", "*.pkl")],title="Save State",initialfile="save.pkl")
+            with file as f:
+                pickle.dump(state, f)
+
+    def load_state(self):
+        try:
+            file = filedialog.askopenfile(mode="rb",filetypes=[("NES Save Files", "*.pkl")],title="Load State")
+            with file as f:
+                state = pickle.load(f)
+                if self.nes:
+                    self.nes.load(state)
+        except FileNotFoundError:
+            print("No save state found.")
 
     def exit(self):
         if self.nes:
