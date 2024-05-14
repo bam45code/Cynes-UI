@@ -4,8 +4,7 @@ from PIL import Image, ImageTk
 from cynes import NESHeadless as NES
 from cynes import NES_INPUT_A, NES_INPUT_B, NES_INPUT_DOWN, NES_INPUT_LEFT, NES_INPUT_RIGHT, NES_INPUT_SELECT, NES_INPUT_START, NES_INPUT_UP
 import numpy as np
-import time
-import pickle
+import time,pickle,os
 
 class NES_Emulator_GUI:
     def __init__(self, root):
@@ -62,6 +61,10 @@ class NES_Emulator_GUI:
         # Initialize last frame time
         self.last_frame_time = 0
 
+        self.save_dir = "saves"
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
     def key_pressed(self, event):
         key = event.keysym
         if key in self.key_mappings:
@@ -92,13 +95,13 @@ class NES_Emulator_GUI:
     def save_state(self):
         if self.nes:
             state = self.nes.save()
-            file = filedialog.asksaveasfile(mode="wb",filetypes=[("NES Save Files", "*.pkl")],title="Save State",initialfile="save.pkl")
+            file = filedialog.asksaveasfile(mode="wb",filetypes=[("NES Save Files", "*.pkl")],title="Save State",initialfile="save.pkl",initialdir=self.save_dir)
             with file as f:
                 pickle.dump(state, f)
 
     def load_state(self):
         try:
-            file = filedialog.askopenfile(mode="rb",filetypes=[("NES Save Files", "*.pkl")],title="Load State")
+            file = filedialog.askopenfile(mode="rb",filetypes=[("NES Save Files", "*.pkl")],title="Load State",initialfile=self.save_dir)
             with file as f:
                 state = pickle.load(f)
                 if self.nes:
